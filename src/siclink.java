@@ -2,7 +2,7 @@ import java.io.*;
 import java.util.*;
 
 public class siclink {
-    public static final int MEM_SIZE = 1024;
+    public static final int MEM_SIZE = 32768;
     public static byte[] MEM = new byte[MEM_SIZE];
     public static boolean[] MEM_USED = new boolean[MEM_SIZE];
     public static Map<String, Integer> ESTAB = new LinkedHashMap<>();
@@ -249,7 +249,20 @@ class ObjectProgram {
                 ModificationRecord mr = new ModificationRecord(line);
                 modificationRecords.add(mr);
             } else if (line.startsWith("E")) {
-                // End Record
+                // Process End Record
+                if (line.length() > 1) {
+                    // If there's an address specified in the End record
+                    // Take characters 1-7 (after 'E') and trim whitespace
+                    String addrStr = line.substring(1, Math.min(7, line.length())).trim();
+                    if (!addrStr.isEmpty()) {
+                        try {
+                            int endAddr = Integer.parseInt(addrStr, 16);
+                            siclink.EXECADDR = address + endAddr;  // Update EXECADDR
+                        } catch (NumberFormatException e) {
+                            siclink.writeError("Invalid address in End record: " + addrStr);
+                        }
+                    }
+                }
                 break;
             }
             line = br.readLine();
